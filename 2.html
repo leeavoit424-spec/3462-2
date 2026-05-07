@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>消费记账本</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background-color: #f7f8fa;
+            max-width: 480px;
+            margin: 0 auto;
+            padding-bottom: 30px;
+        }
+
+        /* 头部 */
+        .header {
+            background-color: #4e7af5;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        /* 统计卡片 */
+        .stats {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .money {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .income {
+            color: #07c160;
+        }
+
+        .expense {
+            color: #ff4d4f;
+        }
+
+        .balance {
+            color: #4e7af5;
+        }
+
+        /* 表单区域 */
+        .form-box {
+            background: white;
+            margin: 0 15px 15px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+        }
+
+        .form-title {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .form-row {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: #4e7af5;
+        }
+
+        /* 按钮 */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-add {
+            background-color: #4e7af5;
+            color: white;
+        }
+
+        .btn-clear {
+            background-color: #ff4d4f;
+            color: white;
+        }
+
+        /* 记录列表 */
+        .list-box {
+            margin: 0 15px;
+        }
+
+        .list-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #333;
+            padding: 0 5px;
+        }
+
+        .record-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .record-left {
+            flex: 1;
+        }
+
+        .record-type {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .record-time {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .record-money {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* 空数据 */
+        .empty {
+            text-align: center;
+            padding: 40px 0;
+            color: #999;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 头部 -->
+    <div class="header">
+        <h1>💰 个人消费记账本</h1>
+        <p>简单记录每一笔收支</p>
+    </div>
+
+    <!-- 统计 -->
+    <div class="stats">
+        <div class="stat-card">
+            <div class="label">总收入</div>
+            <div class="money income" id="totalIncome">0.00</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">总支出</div>
+            <div class="money expense" id="totalExpense">0.00</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">余额</div>
+            <div class="money balance" id="totalBalance">0.00</div>
+        </div>
+    </div>
+
+    <!-- 记账表单 -->
+    <div class="form-box">
+        <div class="form-title">快速记账</div>
+        <div class="form-row">
+            <label>类型</label>
+            <select id="type">
+                <option value="expense">💸 支出</option>
+                <option value="income">💰 收入</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <label>分类</label>
+            <select id="category">
+                <option>餐饮美食</option>
+                <option>日常购物</option>
+                <option>交通出行</option>
+                <option>娱乐休闲</option>
+                <option>住房水电</option>
+                <option>医疗健康</option>
+                <option>工资收入</option>
+                <option>红包收益</option>
+                <option>其他</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <label>金额（元）</label>
+            <input type="number" id="money" placeholder="请输入金额" step="0.01" min="0">
+        </div>
+        <div class="form-row">
+            <label>备注（可选）</label>
+            <input type="text" id="remark" placeholder="简单备注一下">
+        </div>
+        <div class="btn-group">
+            <button class="btn-add" onclick="addRecord()">保存记录</button>
+            <button class="btn-clear" onclick="clearAll()">清空全部</button>
+        </div>
+    </div>
+
+    <!-- 记录列表 -->
+    <div class="list-box">
+        <div class="list-title">📋 收支记录</div>
+        <div id="recordList"></div>
+    </div>
+
+    <script>
+        // 初始化数据
+        let records = JSON.parse(localStorage.getItem('accountRecords')) || [];
+
+        // DOM加载完成渲染
+        window.onload = function() {
+            renderList();
+            calcStats();
+        }
+
+        // 添加记录
+        function addRecord() {
+            const type = document.getElementById('type').value;
+            const category = document.getElementById('category').value;
+            const money = parseFloat(document.getElementById('money').value);
+            const remark = document.getElementById('remark').value || '无备注';
+
+            if (!money || money <= 0) {
+                alert('请输入有效的金额！');
+                return;
+            }
+
+            // 时间
+            const now = new Date();
+            const time = now.getFullYear() + '-' + 
+                        String(now.getMonth()+1).padStart(2, '0') + '-' + 
+                        String(now.getDate()).padStart(2, '0') + ' ' +
+                        String(now.getHours()).padStart(2, '0') + ':' +
+                        String(now.getMinutes()).padStart(2, '0');
+
+            // 新记录
+            const record = {
+                id: Date.now(),
+                type,
+                category,
+                money,
+                remark,
+                time
+            };
+
+            records.unshift(record); // 最新放前面
+            saveData();
+            renderList();
+            calcStats();
+
+            // 清空输入框
+            document.getElementById('money').value = '';
+            document.getElementById('remark').value = '';
+            alert('记录成功！');
+        }
+
+        // 渲染列表
+        function renderList() {
+            const listEl = document.getElementById('recordList');
+            if (records.length === 0) {
+                listEl.innerHTML = '<div class="empty">暂无记录，开始记账吧～</div>';
+                return;
+            }
+
+            let html = '';
+            records.forEach(item => {
+                const sign = item.type === 'income' ? '+' : '-';
+                const color = item.type === 'income' ? '#07c160' : '#ff4d4f';
+                html += `
+                <div class="record-item">
+                    <div class="record-left">
+                        <div class="record-type">${item.category}</div>
+                        <div class="record-time">${item.time} | ${item.remark}</div>
+                    </div>
+                    <div class="record-money" style="color:${color}">
+                        ${sign}${item.money.toFixed(2)}
+                    </div>
+                </div>`;
+            });
+
+            listEl.innerHTML = html;
+        }
+
+        // 计算统计
+        function calcStats() {
+            let income = 0, expense = 0;
+            records.forEach(item => {
+                if (item.type === 'income') {
+                    income += item.money;
+                } else {
+                    expense += item.money;
+                }
+            });
+
+            document.getElementById('totalIncome').innerText = income.toFixed(2);
+            document.getElementById('totalExpense').innerText = expense.toFixed(2);
+            document.getElementById('totalBalance').innerText = (income - expense).toFixed(2);
+        }
+
+        // 保存到本地存储
+        function saveData() {
+            localStorage.setItem('accountRecords', JSON.stringify(records));
+        }
+
+        // 清空所有记录
+        function clearAll() {
+            if (!confirm('确定要清空所有记录吗？此操作不可恢复！')) return;
+            records = [];
+            saveData();
+            renderList();
+            calcStats();
+        }
+    </script>
+</body>
+</html>
